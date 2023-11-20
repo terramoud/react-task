@@ -1,3 +1,5 @@
+import {MyButton} from "./UI/button/MyButton";
+
 export const PostItem = (props) => {
     return (
         <div className="post">
@@ -8,7 +10,7 @@ export const PostItem = (props) => {
                 </div>
             </div>
             <div className="post__btns">
-                <button>remove</button>
+                <MyButton onClick={() => props.remove(props.post)}>remove</MyButton>
             </div>
         </div>
     )
