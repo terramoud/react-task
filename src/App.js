@@ -2,8 +2,9 @@ import './styles/App.css';
 import {PostList} from "./components/PostList";
 import {PostForm} from "./components/PostForm";
 import {MySelect} from "./components/UI/select/MySelect";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import MyInput from "./components/UI/input/MyInput";
+
 function App() {
     const [posts, setPosts] = useState([
         {id: 1, title: "javascript3", body: "description"},
@@ -20,10 +21,19 @@ function App() {
         setPosts(posts.filter(currentPost => currentPost.id !== post.id))
     }
 
-    const sortPosts = (sortType) => {
-        setSelectedSort(sortType);
-        setPosts([...posts].sort((a, b) => a[sortType].localeCompare(b[sortType])));
-    };
+    const sortedPosts = useMemo(() => {
+        if (selectedSort) {
+            return [...posts].sort((a, b) => a[selectedSort].localeCompare(b[selectedSort]));
+        }
+        return posts;
+    }, [selectedSort, posts]);
+
+    const sortedAndSearchedPosts = useMemo(() => {
+        console.log("filter")
+        return sortedPosts.filter((post) =>
+            post.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [sortedPosts, searchQuery]);
 
     return (
         <div className="App">
@@ -38,7 +48,7 @@ function App() {
                 />
                 <MySelect
                     value={selectedSort}
-                    onChange={sortPosts}
+                    onChange={(sortType) => setSelectedSort(sortType)}
                     defaultValue={"Сортування"}
                     options={[
                         {value: 'title', name: 'По назві'},
@@ -46,16 +56,16 @@ function App() {
                     ]}
                 />
             </div>
-            {posts.length
+            {sortedAndSearchedPosts.length
                 ?
-                <PostList remove={removePost} posts={posts} title={"Posts about JS"}/>
+                <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
                 :
                 <h1 style={{textAlign: 'center'}}>
                     Пости не знайдені!
                 </h1>
             }
-
         </div>
     );
 }
+
 export default App;
