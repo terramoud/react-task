@@ -1,8 +1,10 @@
 import './styles/App.css';
 import {PostList} from "./components/PostList";
 import {PostForm} from "./components/PostForm";
-import {useMemo, useState} from "react";
 import {PostFilter} from "./components/PostFilter";
+import React, {useMemo, useState} from "react";
+import {MyModal} from "./components/UI/MyModal/MyModal";
+import {MyButton} from "./components/UI/button/MyButton";
 
 function App() {
     const [posts, setPosts] = useState([
@@ -12,6 +14,7 @@ function App() {
     ])
 
     const [filter, setFilter] = useState({sortBy: '', searchQuery: ''});
+    const [modal, setModal] = useState(false);
 
     const sortedPosts = useMemo(() => {
         if (filter.sortBy) {
@@ -34,18 +37,17 @@ function App() {
 
     return (
         <div className="App">
-            <PostForm create={createNewPost}/>
+            <MyButton style={{marginTop: 30}} onClick={() => setModal(true)}>
+                Create post
+            </MyButton>
+            <MyModal visible={modal} setVisible={setModal}>
+                <PostForm create={createNewPost}/>
+            </MyModal>
             <hr/>
-            <PostFilter
-                filter={filter}
-                setFilter={setFilter}
-            />
-            {sortedAndSearchedPosts.length ?
-                <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/> :
-                <h1 style={{textAlign: 'center'}}>
-                    Пости не знайдені!
-                </h1>}
-        </div>);
+            <PostFilter filter={filter} setFilter={setFilter}/>
+            <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
+        </div>
+    );
 }
 
 export default App;
