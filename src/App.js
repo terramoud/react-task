@@ -6,6 +6,7 @@ import React, {useState} from "react";
 import {MyModal} from "./components/UI/MyModal/MyModal";
 import {MyButton} from "./components/UI/button/MyButton";
 import {usePosts} from "./hooks/usePosts";
+import axios from 'axios';
 
 function App() {
     const [posts, setPosts] = useState([
@@ -23,10 +24,16 @@ function App() {
     }
     const removePost = post => {
         setPosts(posts.filter(currentPost => currentPost.id !== post.id))
-
     }
+
+    async function fetchPosts() {
+        const response = await axios.get("https://jsonplaceholder.typicode.com/posts")
+        setPosts(response.data)
+    }
+
     return (
         <div className="App">
+            <MyButton onClick={fetchPosts}>get posts</MyButton>
             <MyButton style={{marginTop: 30}} onClick={() => setModal(true)}>
                 Create post
             </MyButton>
