@@ -8,6 +8,7 @@ import {MyButton} from "./components/UI/button/MyButton";
 import {usePosts} from "./hooks/usePosts";
 import PostService from "./components/API/PostService";
 import {Loader} from "./components/UI/Loader/Loader";
+import {useFetching} from "./hooks/useFetching";
 
 function App() {
     const [posts, setPosts] = useState([])
@@ -15,7 +16,10 @@ function App() {
     const [filter, setFilter] = useState({sortBy: '', searchQuery: ''});
     const [modal, setModal] = useState(false);
     const sortedAndSearchedPosts = usePosts(posts, filter.sortBy, filter.searchQuery);
-    const [isPostLoading, setIsPostLoading] = useState(false);
+    const [fetchPosts, isPostLoading, postError] = useFetching(async () => {
+        const posts = await PostService.getAll();
+        setPosts(posts);
+    });
 
     const createNewPost = newPost => {
         setPosts([...posts, newPost])
@@ -29,18 +33,9 @@ function App() {
         fetchPosts();
     }, []);
 
-    async function fetchPosts() {
-        setIsPostLoading(true);
-        setTimeout(async () => {
-            const posts = await PostService.getAll();
-            setPosts(posts)
-            setIsPostLoading(false)
-        }, 1500);
-    }
-
     return (
         <div className="App">
-            <MyButton onClick={fetchPosts}>get posts</MyButton>
+            {/*<MyButton onClick={fetchPosts}>get posts</MyButton>*/}
             <MyButton style={{marginTop: 30}} onClick={() => setModal(true)}>
                 Create post
             </MyButton>
@@ -49,6 +44,7 @@ function App() {
             </MyModal>
             <hr/>
             <PostFilter filter={filter} setFilter={setFilter}/>
+            {postError && <h1>Виникла помилка при завантаженні постів: ${postError}</h1>}
             {isPostLoading
                 ? <div style={{display: 'flex', justifyContent: 'center', marginTop: 50}}><Loader/></div>
                 : <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
