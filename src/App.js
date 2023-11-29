@@ -2,22 +2,21 @@ import './styles/App.css';
 import {PostList} from "./components/PostList";
 import {PostForm} from "./components/PostForm";
 import {PostFilter} from "./components/PostFilter";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {MyModal} from "./components/UI/MyModal/MyModal";
 import {MyButton} from "./components/UI/button/MyButton";
 import {usePosts} from "./hooks/usePosts";
-import axios from 'axios';
+import PostService from "./components/API/PostService";
+import {Loader} from "./components/UI/Loader/Loader";
 
 function App() {
-    const [posts, setPosts] = useState([
-        {id: 1, title: "javascript3", body: "description"},
-        {id: 2, title: "asdfasdf2", body: "description2"},
-        {id: 3, title: "dfdf1", body: "description3"},
-    ])
+    const [posts, setPosts] = useState([])
 
     const [filter, setFilter] = useState({sortBy: '', searchQuery: ''});
     const [modal, setModal] = useState(false);
     const sortedAndSearchedPosts = usePosts(posts, filter.sortBy, filter.searchQuery);
+    const [isPostLoading, setIsPostLoading] = useState(false);
+
     const createNewPost = newPost => {
         setPosts([...posts, newPost])
         // setModal(false);
@@ -26,9 +25,17 @@ function App() {
         setPosts(posts.filter(currentPost => currentPost.id !== post.id))
     }
 
+    useEffect(() => {
+        fetchPosts();
+    }, []);
+
     async function fetchPosts() {
-        const response = await axios.get("https://jsonplaceholder.typicode.com/posts")
-        setPosts(response.data)
+        setIsPostLoading(true);
+        setTimeout(async () => {
+            const posts = await PostService.getAll();
+            setPosts(posts)
+            setIsPostLoading(false)
+        }, 1500);
     }
 
     return (
@@ -42,7 +49,10 @@ function App() {
             </MyModal>
             <hr/>
             <PostFilter filter={filter} setFilter={setFilter}/>
-            <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
+            {isPostLoading
+                ? <div style={{display: 'flex', justifyContent: 'center', marginTop: 50}}><Loader/></div>
+                : <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
+            }
         </div>
     );
 }
