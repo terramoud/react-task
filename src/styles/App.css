@@ -70,3 +70,7 @@
 .navbar__links {
     margin-left: auto;
 }
+
+.navbar__links a{
+    margin-right: 15px;
+}
