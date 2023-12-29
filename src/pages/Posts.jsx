@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {usePosts} from "../hooks/usePosts";
 import {useFetching} from "../hooks/useFetching";
 import PostService from "../components/API/PostService";
@@ -10,23 +10,29 @@ import {PostFilter} from "../components/PostFilter";
 import {Loader} from "../components/UI/Loader/Loader";
 import {PostList} from "../components/PostList";
 import {Pagination} from "../components/Pagination";
+import {useObserver} from "../hooks/useObserver";
 
 export const Posts = () => {
     const [posts, setPosts] = useState([])
 
     const [filter, setFilter] = useState({sortBy: '', searchQuery: ''});
     const [modal, setModal] = useState(false);
-    const sortedAndSearchedPosts = usePosts(posts, filter.sortBy, filter.searchQuery);
     const [totalPages, setTotalPages] = useState(0);
     const [limit, setLimit] = useState(10);
     const [page, setPage] = useState(1);
+    const sortedAndSearchedPosts = usePosts(posts, filter.sortBy, filter.searchQuery);
+    const lastElement = useRef();
     const [fetchPosts, isPostLoading, postError] = useFetching(async (limit, page) => {
         const response = await PostService.getAll(limit, page);
-        setPosts(response.data);
+        setPosts([...posts, ...response.data]);
         const totalCount = response.headers['x-total-count'];
         setTotalPages(getPageCount(totalCount, limit));
     });
-    console.log(totalPages);
+
+    useObserver(lastElement, page < totalPages, isPostLoading, () => {
+        setPage(page + 1);
+    })
+
     const createNewPost = newPost => {
         setPosts([...posts, newPost])
         // setModal(false);
@@ -37,11 +43,10 @@ export const Posts = () => {
 
     useEffect(() => {
         fetchPosts(limit, page);
-    }, []);
+    }, [page]);
 
     const changePage = p => {
         setPage(p);
-        fetchPosts(limit, p);
     };
 
     return (
@@ -56,9 +61,10 @@ export const Posts = () => {
             <hr/>
             <PostFilter filter={filter} setFilter={setFilter}/>
             {postError && <h1>Виникла помилка при завантаженні постів: ${postError}</h1>}
-            {isPostLoading
-                ? <div style={{display: 'flex', justifyContent: 'center', marginTop: 50}}><Loader/></div>
-                : <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
+            <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
+            <div ref={lastElement} style={{height: 20, background: 'red'}}></div>
+            {isPostLoading &&
+                <div style={{display: 'flex', justifyContent: 'center', marginTop: 50}}><Loader/></div>
             }
             <Pagination
                 page={page}
