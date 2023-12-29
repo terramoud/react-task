@@ -11,6 +11,7 @@ import {Loader} from "../components/UI/Loader/Loader";
 import {PostList} from "../components/PostList";
 import {Pagination} from "../components/Pagination";
 import {useObserver} from "../hooks/useObserver";
+import {MySelect} from "../components/UI/select/MySelect";
 
 export const Posts = () => {
     const [posts, setPosts] = useState([])
@@ -43,7 +44,7 @@ export const Posts = () => {
 
     useEffect(() => {
         fetchPosts(limit, page);
-    }, [page]);
+    }, [page, limit]);
 
     const changePage = p => {
         setPage(p);
@@ -60,6 +61,17 @@ export const Posts = () => {
             </MyModal>
             <hr/>
             <PostFilter filter={filter} setFilter={setFilter}/>
+            <MySelect
+                value={limit}
+                onChange={value => setLimit(value)}
+                defaultValue="Кількість елементів на сторінці"
+                options={[
+                    {value: 5, name: '5'},
+                    {value: 10, name: '10'},
+                    {value: 25, name: '25'},
+                    {value: -1, name: 'All'}
+                ]}
+            />
             {postError && <h1>Виникла помилка при завантаженні постів: ${postError}</h1>}
             <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Posts about JS"}/>
             <div ref={lastElement} style={{height: 20, background: 'red'}}></div>
